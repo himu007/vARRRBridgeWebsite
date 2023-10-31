@@ -20,7 +20,7 @@ const verusd = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, process.env.REACT_AP
 const blockNumber = process.env.REACT_APP_VERUS_END_BLOCK || '0'
 
 const fetchConversion = async () => {
-  const res = await verusd.getCurrency('bridge.veth')
+  const res = await verusd.getCurrency('bridge.vDEX')
   const info = await verusd.getInfo()
 
   const block = info.result.longestchain
