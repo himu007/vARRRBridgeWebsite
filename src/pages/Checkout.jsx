@@ -22,7 +22,7 @@ export default function Checkout() {
       <Header />
       <StyledRow>
         <StyledContainer component="main" maxWidth="sm">
-          <Typography component="h2" variant="h4" align='center' sx={{ mb: 3 }}>Verus Bridge Stats</Typography>
+          <Typography component="h2" variant="h4" align='center' sx={{ mb: 3 }}>vARRR Bridge Stats</Typography>
           <StatsGrid />
         </StyledContainer>
         <StyledContainer component="main" maxWidth="sm">
