@@ -11,16 +11,16 @@ import { ReactComponent as Chevron } from '../../images/icons/chevron-icon.svg'
 
 const CoinGeckoVRSC = 'https://api.coingecko.com/api/v3/coins/verus-coin'
 const CoinGeckoETH = 'https://api.coingecko.com/api/v3/coins/ethereum'
-const CoinGeckoMRK = 'https://api.coingecko.com/api/v3/coins/maker'
+const CoinGeckotBTC = 'https://api.coingecko.com/api/v3/coins/tbtc'
 const CoinGeckoDAI = 'https://api.coingecko.com/api/v3/coins/dai'
-const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckoMRK, CoinGeckoDAI]
+const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckotBTC, CoinGeckoDAI]
 
 const verusd = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, process.env.REACT_APP_VERUS_RPC_URL)
 
 const blockNumber = process.env.REACT_APP_VERUS_END_BLOCK || '0'
 
 const fetchConversion = async () => {
-  const res = await verusd.getCurrency('bridge.vDEX')
+  const res = await verusd.getCurrency('bridge.varrr')
   const info = await verusd.getInfo()
 
   const block = info.result.longestchain
@@ -32,15 +32,15 @@ const fetchConversion = async () => {
   const { supply } = bestState
   const blockdiff = blockNumber - block
   const daiKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'DAI.vETH')
-  const daiAmount = currencies.find(c => c.currencyid === daiKey).reserves
+  // const daiAmount = currencies.find(c => c.currencyid === daiKey).reserves
 
-  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, daiPrice: daiAmount / token.reserves }))
-  const bridge = { name: 'Bridge.vETH', amount: supply, daiPrice: (daiAmount * count) / supply }
+  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, daiPrice: 0 }))
+  const bridge = { name: 'Bridge.vARRR', amount: supply, daiPrice: (1 * count) / supply }
 
   let conversions = [
-    { symbol: 'vrsc', price: 0.412836 },
+    { symbol: 'vrsc', price: 1.36 },
     { symbol: 'eth', price: 1666.45 },
-    { symbol: 'mkr', price: 1449.5 },
+    { symbol: 'tBTC', price: 36519.7 },
     { symbol: 'dai', price: 1 }
   ]
 
@@ -64,22 +64,17 @@ const fetchConversion = async () => {
         return {
           ...token,
           price:
-            conversions.find((c) => c.symbol === 'vrsc')?.price || 0.412836
+            conversions.find((c) => c.symbol === 'vrsc')?.price || 1.36
         }
       case 'vETH':
         return {
           ...token,
           price: conversions.find((c) => c.symbol === 'eth')?.price || 1666.45
         }
-      case 'DAI.vETH':
+      case 'vARRR':
         return {
           ...token,
           price: 1
-        }
-      case 'MKR.vETH':
-        return {
-          ...token,
-          price: conversions.find((c) => c.symbol === 'mkr')?.price || 1449.5
         }
       // return { ...token, price: vrscPrice }
       default:
