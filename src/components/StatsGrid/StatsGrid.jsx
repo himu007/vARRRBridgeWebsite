@@ -12,16 +12,32 @@ import { ReactComponent as Chevron } from '../../images/icons/chevron-icon.svg'
 const CoinGeckoVRSC = 'https://api.coingecko.com/api/v3/coins/verus-coin'
 const CoinGeckoETH = 'https://api.coingecko.com/api/v3/coins/ethereum'
 const CoinGeckotBTC = 'https://api.coingecko.com/api/v3/coins/tbtc'
-const CoinGeckoDAI = 'https://api.coingecko.com/api/v3/coins/dai'
-const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckotBTC, CoinGeckoDAI]
+const CoinGeckoARRR = 'https://api.coingecko.com/api/v3/coins/pirate-chain'
+
+const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckotBTC, CoinGeckoARRR]
 
 const verusd = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, process.env.REACT_APP_VERUS_RPC_URL)
 
 const blockNumber = process.env.REACT_APP_VERUS_END_BLOCK || '0'
 
+const getDetails = (res) => {
+  const bestState = res.result.bestcurrencystate
+  const currencyNames = res.result.currencynames
+  const currencies = bestState.reservecurrencies
+  const count = currencies.length
+  const { supply } = bestState
+
+  return { bestState, currencyNames, count, supply }
+}
+
+
+
 const fetchConversion = async () => {
-  const res = await verusd.getCurrency('bridge.varrr')
+  const res = await verusd.getCurrency('bridge.varrr');
+  const vrscbridge = await verusd.getCurrency('bridge.veth')
   const info = await verusd.getInfo()
+
+  const vrscbridgedetails = getDetails(vrscbridge);
 
   const block = info.result.longestchain
 
@@ -31,17 +47,17 @@ const fetchConversion = async () => {
   const count = currencies.length
   const { supply } = bestState
   const blockdiff = blockNumber - block
-  const daiKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'DAI.vETH')
-  // const daiAmount = currencies.find(c => c.currencyid === daiKey).reserves
+  const tbtcKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'tBTC')
+  const tbtcAmount = currencies.find(c => c.currencyid === tbtcKey).reserves
 
-  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, daiPrice: 0 }))
-  const bridge = { name: 'Bridge.vARRR', amount: supply, daiPrice: (1 * count) / supply }
+  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, tbtcPrice: tbtcAmount / token.reserves }))
+  const bridge = { name: 'Bridge.vARRR', amount: supply, tbtcPrice: (tbtcAmount * count) / supply }
 
   let conversions = [
-    { symbol: 'vrsc', price: 1.36 },
-    { symbol: 'eth', price: 1666.45 },
-    { symbol: 'tBTC', price: 36519.7 },
-    { symbol: 'dai', price: 1 }
+    { symbol: 'vrsc', price: 0 },
+    { symbol: 'eth', price: 0 },
+    { symbol: 'tBTC', price: 0 },
+    { symbol: 'arrr', price: 0 }
   ]
 
   try {
@@ -64,17 +80,22 @@ const fetchConversion = async () => {
         return {
           ...token,
           price:
-            conversions.find((c) => c.symbol === 'vrsc')?.price || 1.36
+            conversions.find((c) => c.symbol === 'vrsc')?.price
         }
-      case 'vETH':
+      case 'Bridge.vETH':
         return {
           ...token,
-          price: conversions.find((c) => c.symbol === 'eth')?.price || 1666.45
+          price: conversions.find((c) => c.symbol === 'bridge')?.price
         }
       case 'vARRR':
         return {
           ...token,
-          price: 1
+          price: conversions.find((c) => c.symbol === 'arrr')?.price
+        }
+      case 'tBTC':
+        return {
+          ...token,
+          price: conversions.find((c) => c.symbol === 'tbtc')?.price
         }
       // return { ...token, price: vrscPrice }
       default:
@@ -98,7 +119,7 @@ const StatsGrid = () => {
         <Grid item xs={4}><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
 
         <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Supply</Typography></Grid>
-        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in DAI</Typography></Grid>
+        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
       </Grid>
 
       <Grid container className='blueRow' mb={5}>
@@ -109,21 +130,21 @@ const StatsGrid = () => {
         }).format(conversionList.bridge.amount)}</Typography></Grid>
         <Grid item xs={4} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
-          maximumFractionDigits: 3,
+          maximumFractionDigits: 8,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.daiPrice)}</Typography></Grid>
+        }).format(conversionList.bridge.tbtcPrice)}</Typography></Grid>
       </Grid>
 
       <Grid container className="blueRowTitle" >
         <Grid item xs={3}><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Bridge.vETH<br />reserve currencies</Typography></Grid>
         <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
-        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in Dai</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
         <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
       </Grid>
       {conversionList.list && conversionList.list.map((token) => {
         // eslint-disable-next-line no-nested-ternary
-        const rate = token.daiPrice < token.price ? 'less' : token.daiPrice > token.price ? 'greater' : 'equal'
-        const percent = Math.abs(token.daiPrice / token.price) - 1
+        const rate = token.tbtcPrice < token.price ? 'less' : token.tbtcPrice > token.price ? 'greater' : 'equal'
+        const percent = Math.abs((token.tbtcPrice * conversionList.list[3].price) / token.price) - 1
 
         return (
           <Grid container className="blueRow" key={token.name}>
@@ -141,9 +162,9 @@ const StatsGrid = () => {
               <Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
-                  maximumFractionDigits: 2,
+                  maximumFractionDigits: 8,
                   minimumFractionDigits: 2
-                }).format(token.daiPrice)}
+                }).format(token.tbtcPrice)}
               </Typography></Grid>
             <Grid item xs={3} textAlign="right">
               <Typography className={rate} noWrap>
@@ -164,7 +185,7 @@ const StatsGrid = () => {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.daiPrice * conversionList.bridge.amount)} DAI</Typography></Grid>
+        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount)} tBTC</Typography></Grid>
       </Grid>
     </>
   )
