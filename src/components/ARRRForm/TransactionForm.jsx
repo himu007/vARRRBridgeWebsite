@@ -1,0 +1,176 @@
+import React, { useEffect, useState } from 'react';
+
+import { address as baddress, crypto as bcrypto } from '@bitgo/utxo-lib';
+import { LoadingButton } from '@mui/lab';
+import { Alert, Typography } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import { Box } from '@mui/system';
+import { useWeb3React } from '@web3-react/core';
+import { useForm } from 'react-hook-form';
+import web3 from 'web3';
+
+import ERC20_ABI from 'abis/ERC20Abi.json';
+import MARRR_ABI from 'abis/marrrAbi.json';
+import {
+  DELEGATOR_ADD,
+  GLOBAL_ADDRESS,
+  GLOBAL_IADDRESS,
+  ETHEREUM_BLOCKCHAIN_NAME
+} from 'constants/contractAddress';
+import useContract from 'hooks/useContract';
+import { getContract } from 'utils/contract';
+import { validateAddress } from 'utils/rules'
+
+import AmountField from './AmountField';
+import DestinationField from './DestinationField';
+import { useToast } from '../Toast/ToastProvider';
+
+const maxGas = 1000000;
+const maxGas2 = 100000;
+
+
+export default function TransactionForm() {
+
+  const [isTxPending, setIsTxPending] = useState(false);
+  const [alert, setAlert] = useState(null);
+
+  const [verusTokens, setVerusTokens] = useState(['']);
+
+  const { addToast } = useToast();
+  const { account, library } = useWeb3React();
+  const mARRRContract = useContract(GLOBAL_ADDRESS.VARRR, MARRR_ABI);
+
+  const { handleSubmit, control, watch } = useForm({
+    mode: 'all'
+  });
+  const token = watch('token');
+  const amount = watch('amount');
+  const destination = watch('destination');
+  const getTokens = () => {
+
+    const tokens = [{ name: "vARRR", ticker: "vARRR", erc20ContractAddress: GLOBAL_ADDRESS.VARRR, iaddress: GLOBAL_IADDRESS.VARRR },
+    { name: "mARRR", ticker: "mARRR", erc20ContractAddress: GLOBAL_ADDRESS.MARRR, iaddress: GLOBAL_IADDRESS.MARRR }];
+    const TOKEN_OPTIONS = tokens.map(e => ({ label: e.name, value: e.ticker, erc20address: e.erc20ContractAddress }))
+    return TOKEN_OPTIONS
+  }
+
+  useEffect(async () => {
+    if (mARRRContract && account) {
+      const tokens = getTokens();
+      setVerusTokens(tokens);
+    }
+  }, [mARRRContract, account])
+
+  const authoriseOneTokenAmount = async (token, amount) => {
+    setAlert(`Metamask will now pop up to allow the spend ${amount}(${token.name}) from your ${ETHEREUM_BLOCKCHAIN_NAME} balance.`);
+
+    const tokenERC = verusTokens.find(add => add.iaddress === token.value).erc20address;
+    const tokenInstContract = getContract(tokenERC, ERC20_ABI, library, account)
+    const decimals = web3.utils.toBN(await tokenInstContract.decimals());
+
+    const ten = new web3.utils.BN(10);
+    const base = ten.pow(new web3.utils.BN(decimals));
+    const comps = amount.split('.');
+    if (comps.length > 2) { throw new Error('Too many decimal points'); }
+
+    let whole = comps[0];
+    let fraction = comps[1];
+
+    if (!whole) { whole = '0'; }
+    if (!fraction) { fraction = '0'; }
+    if (fraction.length > decimals) {
+      throw new Error('Too many decimal places');
+    }
+
+    while (fraction.length < decimals) {
+      fraction += '0';
+    }
+
+    whole = new web3.utils.BN(whole);
+    fraction = new web3.utils.BN(fraction);
+    const bigAmount = (whole.mul(base)).add(fraction);
+
+    const approve = await tokenInstContract.approve(DELEGATOR_ADD, bigAmount.toString(), { from: account, gasLimit: maxGas2 })
+
+    setAlert(`Authorising ERC20 Token, please wait...`);
+    const reply = await approve.wait();
+
+    if (reply.status === 0) {
+      throw new Error("Authorising ERC20 Token Spend Failed, please check your balance.")
+    }
+    setAlert(`
+      Your ${ETHEREUM_BLOCKCHAIN_NAME} account has authorised the bridge to spend ${token.name} token, the amount: ${amount}. 
+      \n Next, after this window please check the amount in Meta mask is what you wish to send.`
+    );
+  }
+
+  const onSubmit = async (values) => {
+    const { token, amount } = values;
+    setAlert(null);
+    setIsTxPending(true);
+    const validAccount = await validateAddress(account);
+    if (validAccount !== true) {
+      addToast({ type: "error", description: 'Sending Account invalid' })
+      setAlert(null);
+      setIsTxPending(false);
+      return;
+    }
+
+    try {
+
+      await authoriseOneTokenAmount(token, amount);
+      const txResult = await mARRRContract.sendTransfer(
+        amount,
+        { from: account, gasLimit: maxGas }
+      );
+
+      addToast({ type: "success", description: 'Transaction Success!' });
+      setAlert(null);
+      setIsTxPending(false);
+
+    } catch (error) {
+      if (error.message) {
+        addToast({ type: "error", description: error.message })
+      } else {
+        addToast({ type: "error", description: 'Transaction Failed!' })
+      }
+      setAlert(null);
+      setIsTxPending(false);
+    }
+  }
+
+  return (
+    <>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        {alert &&
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            <Typography>
+              {alert}
+            </Typography>
+          </Alert>
+        }
+        {!account && <Alert severity="info" sx={{ mb: 3 }}>
+          <Typography>
+            <b>Wallet not connected</b>
+          </Typography>
+        </Alert>
+        }
+        <Grid item xs={12}>
+          <DestinationField
+            control={control}
+          />
+        </Grid>
+        <Grid item xs={12}>
+          <AmountField
+            control={control}
+
+          />
+        </Grid>
+        <Box mt="30px" textAlign="center" width="100%">
+          <LoadingButton loading={isTxPending} disabled={!destination || isTxPending} type="submit" color="primary" variant="contained">Send</LoadingButton>
+        </Box>
+
+      </form >
+    </>
+  );
+}

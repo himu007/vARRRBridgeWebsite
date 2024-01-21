@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import { AppBar, Toolbar, Typography } from '@mui/material'
 import { useWeb3React } from '@web3-react/core';
 
-import { BLOCKCHAIN_NAME } from "constants/contractAddress";
+import { BLOCKCHAIN_NAME, TESTNET } from "constants/contractAddress";
 
 import ConnectButton from './ConnectButton'
 import WalletConnectDialog from './WalletConnectDialog';
@@ -45,7 +45,7 @@ const Header = () => {
           noWrap
           sx={{ flexGrow: 1, marginLeft: '20px' }}
         >
-          ({`${BLOCKCHAIN_NAME.toUpperCase()}`})
+          ({`${(TESTNET ? "Verus Testnet" : "Verus").toUpperCase()} mARRR swap service`})
         </Typography>
         <ConnectButton onClick={handleClickConnect} />
         <WalletConnectDialog

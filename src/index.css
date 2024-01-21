@@ -17,7 +17,6 @@ code {
  height: auto;
  margin: 1rem auto 1rem;
  color: #000000;
- border-radius: 1rem;
  display: flex;
  align-items: center;
  justify-content: center;
@@ -29,12 +28,10 @@ code {
 
 ul.nav {
   width: 60%;
- 
+   border: 1px solid #39A2DB;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid #39A2DB;
-  border-radius: 2rem;
   padding-left: 0px;
   @media (max-width: 768px) {
     width: 90%;
@@ -47,13 +44,9 @@ ul.nav li {
   text-align: center;
   cursor: pointer;
   transition: all 0.7s;
-  border-bottom-left-radius: 2rem;
-  border-top-left-radius: 2rem;
 }
 ul.nav li:nth-child(2) {
   border-radius: 0;
-  border-bottom-right-radius: 2rem;
-  border-top-right-radius: 2rem;
 }
 ul.nav li:hover {
   background: rgba(50, 224, 196, 0.15);
