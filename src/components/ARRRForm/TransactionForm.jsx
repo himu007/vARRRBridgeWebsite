@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 
-import { address as baddress, crypto as bcrypto } from '@bitgo/utxo-lib';
 import { LoadingButton } from '@mui/lab';
 import { Alert, Typography } from '@mui/material';
 import Grid from '@mui/material/Grid';
@@ -12,7 +11,6 @@ import web3 from 'web3';
 import ERC20_ABI from 'abis/ERC20Abi.json';
 import MARRR_ABI from 'abis/marrrAbi.json';
 import {
-  DELEGATOR_ADD,
   GLOBAL_ADDRESS,
   GLOBAL_IADDRESS,
   ETHEREUM_BLOCKCHAIN_NAME
@@ -33,9 +31,6 @@ export default function TransactionForm() {
 
   const [isTxPending, setIsTxPending] = useState(false);
   const [alert, setAlert] = useState(null);
-
-  const [verusTokens, setVerusTokens] = useState(['']);
-
   const { addToast } = useToast();
   const { account, library } = useWeb3React();
   const mARRRContract = useContract(GLOBAL_ADDRESS.VARRR, MARRR_ABI);
@@ -43,28 +38,14 @@ export default function TransactionForm() {
   const { handleSubmit, control, watch } = useForm({
     mode: 'all'
   });
-  const token = watch('token');
-  const amount = watch('amount');
-  const destination = watch('destination');
-  const getTokens = () => {
 
-    const tokens = [{ name: "vARRR", ticker: "vARRR", erc20ContractAddress: GLOBAL_ADDRESS.VARRR, iaddress: GLOBAL_IADDRESS.VARRR },
-    { name: "mARRR", ticker: "mARRR", erc20ContractAddress: GLOBAL_ADDRESS.MARRR, iaddress: GLOBAL_IADDRESS.MARRR }];
-    const TOKEN_OPTIONS = tokens.map(e => ({ label: e.name, value: e.ticker, erc20address: e.erc20ContractAddress }))
-    return TOKEN_OPTIONS
-  }
 
-  useEffect(async () => {
-    if (mARRRContract && account) {
-      const tokens = getTokens();
-      setVerusTokens(tokens);
-    }
-  }, [mARRRContract, account])
+  const destination = watch('Swap to');
 
   const authoriseOneTokenAmount = async (token, amount) => {
-    setAlert(`Metamask will now pop up to allow the spend ${amount}(${token.name}) from your ${ETHEREUM_BLOCKCHAIN_NAME} balance.`);
+    setAlert(`Metamask will now pop up to allow the spend ${amount}(${token}) from your ${ETHEREUM_BLOCKCHAIN_NAME} balance.`);
 
-    const tokenERC = verusTokens.find(add => add.iaddress === token.value).erc20address;
+    const tokenERC = GLOBAL_ADDRESS.VARRR;
     const tokenInstContract = getContract(tokenERC, ERC20_ABI, library, account)
     const decimals = web3.utils.toBN(await tokenInstContract.decimals());
 
@@ -90,7 +71,7 @@ export default function TransactionForm() {
     fraction = new web3.utils.BN(fraction);
     const bigAmount = (whole.mul(base)).add(fraction);
 
-    const approve = await tokenInstContract.approve(DELEGATOR_ADD, bigAmount.toString(), { from: account, gasLimit: maxGas2 })
+    const approve = await tokenInstContract.approve(GLOBAL_ADDRESS.MARRR, bigAmount.toString(), { from: account, gasLimit: maxGas2 })
 
     setAlert(`Authorising ERC20 Token, please wait...`);
     const reply = await approve.wait();
@@ -117,12 +98,28 @@ export default function TransactionForm() {
     }
 
     try {
-
-      await authoriseOneTokenAmount(token, amount);
-      const txResult = await mARRRContract.sendTransfer(
-        amount,
-        { from: account, gasLimit: maxGas }
-      );
+      let txResult;
+      if (destination === "mARRR") {
+        await authoriseOneTokenAmount(token, amount);
+        const gasAmount = mARRRContract.estimateGas.swapTomARRR(
+          web3.utils.toWei(amount, 'ether'),
+          { from: account }
+        );
+        txResult = await mARRRContract.swapTomARRR(
+          web3.utils.toWei(amount, 'ether'),
+          { from: account, gasLimit: gasAmount }
+        );
+      }
+      else {
+        const gasAmount = mARRRContract.estimateGas.swapTovARRR(
+          web3.utils.toWei(amount, 'ether'),
+          { from: account }
+        );
+        txResult = await mARRRContract.swapTovARRR(
+          web3.utils.toWei(amount, 'ether'),
+          { from: account, gasLimit: gasAmount }
+        );
+      }
 
       addToast({ type: "success", description: 'Transaction Success!' });
       setAlert(null);
@@ -163,6 +160,7 @@ export default function TransactionForm() {
         <Grid item xs={12}>
           <AmountField
             control={control}
+            destination={destination}
 
           />
         </Grid>
