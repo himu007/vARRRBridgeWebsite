@@ -16,24 +16,10 @@ const AmountField = ({ control, selectedToken }) => {
   const { value, name } = selectedToken || {};
 
   const validate = async (amount) => {
-    if (amount > 100000000) {
-      return 'Amount too large. Try a smaller amount.'
-    }
 
+    console.log("amount", amount)
     if (amount <= 0) {
       return 'Amount is not valid.'
-    }
-
-    if (value === GLOBAL_ADDRESS.ETH) {
-      const web3 = new Web3(window.ethereum);
-      window.ethereum.enable();
-      let accbal = await web3.eth.getBalance(account);
-      accbal = web3.utils.fromWei(accbal);
-      accbal = parseFloat(accbal);
-      if (accbal < amount) {
-        return `Amount is not available in your wallet. ${accbal} ${name}`
-      }
-      return true;
     }
 
     const MAPPED_DATA = await delegatorContract.callStatic.verusToERC20mapping(value)

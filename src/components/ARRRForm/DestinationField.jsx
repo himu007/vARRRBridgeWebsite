@@ -1,11 +1,10 @@
 import React from 'react'
 
 import SelectControlField from 'components/SelectControlField'
-import { getDestinationOptions } from 'utils/options'
 
-const DestinationField = ({ control, poolAvailable, address, selectedToken }) => {
 
-  const { value, name } = selectedToken || {};
+const DestinationField = ({ control }) => {
+
   const TokenOptions = [{ label: "vARRR", value: "vARRR" }, { label: "mARRR", value: "mARRR" }]
   const validate = (destination) => {
     if (!destination) return "Destination is required"
@@ -14,9 +13,9 @@ const DestinationField = ({ control, poolAvailable, address, selectedToken }) =>
 
   return (
     <SelectControlField
-      name="destination"
+      name="Swap to"
       id="destination"
-      label="Destination"
+      label="Swap to"
       fullWidth
       defaultValue=""
       variant="standard"

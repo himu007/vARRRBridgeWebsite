@@ -167,7 +167,7 @@ export default function TransactionForm() {
           />
         </Grid>
         <Box mt="30px" textAlign="center" width="100%">
-          <LoadingButton loading={isTxPending} disabled={!destination || isTxPending} type="submit" color="primary" variant="contained">Send</LoadingButton>
+          <LoadingButton loading={isTxPending} disabled={isTxPending} type="submit" color="primary" variant="contained">Send</LoadingButton>
         </Box>
 
       </form >
