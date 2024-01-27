@@ -3,13 +3,12 @@ import React, { useState } from 'react'
 import { AppBar, Toolbar, Typography } from '@mui/material'
 import { useWeb3React } from '@web3-react/core';
 
-import { BLOCKCHAIN_NAME, TESTNET } from "constants/contractAddress";
+import { TESTNET } from "constants/contractAddress";
 
 import ConnectButton from './ConnectButton'
 import WalletConnectDialog from './WalletConnectDialog';
 import { injectedConnector } from '../connectors/injectedConnector';
 import Swap from '../images/logos/swappirate.png'
-import Logo from '../images/logos/verus-eth-bridge.png'
 
 const Header = () => {
   const [walletDialogOpen, setWalletDialogOpen] = useState(false);

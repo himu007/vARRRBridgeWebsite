@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import { LoadingButton } from '@mui/lab';
 import { Alert, Typography } from '@mui/material';
@@ -12,7 +12,6 @@ import ERC20_ABI from 'abis/ERC20Abi.json';
 import MARRR_ABI from 'abis/marrrAbi.json';
 import {
   GLOBAL_ADDRESS,
-  GLOBAL_IADDRESS,
   ETHEREUM_BLOCKCHAIN_NAME
 } from 'constants/contractAddress';
 import useContract from 'hooks/useContract';
@@ -23,9 +22,7 @@ import AmountField from './AmountField';
 import DestinationField from './DestinationField';
 import { useToast } from '../Toast/ToastProvider';
 
-const maxGas = 1000000;
-const maxGas2 = 100000;
-
+const maxGas2 = 150000;
 
 export default function TransactionForm() {
 
@@ -33,17 +30,16 @@ export default function TransactionForm() {
   const [alert, setAlert] = useState(null);
   const { addToast } = useToast();
   const { account, library } = useWeb3React();
-  const mARRRContract = useContract(GLOBAL_ADDRESS.VARRR, MARRR_ABI);
+  const mARRRContract = useContract(GLOBAL_ADDRESS.MARRR, MARRR_ABI);
 
   const { handleSubmit, control, watch } = useForm({
     mode: 'all'
   });
 
-
   const destination = watch('Swap to');
 
-  const authoriseOneTokenAmount = async (token, amount) => {
-    setAlert(`Metamask will now pop up to allow the spend ${amount}(${token}) from your ${ETHEREUM_BLOCKCHAIN_NAME} balance.`);
+  const authoriseOneTokenAmount = async (destination, amount) => {
+    setAlert(`Metamask will now pop up to allow the spend ${amount}(${destination === "mARRR" ? "vARRR" : "mARRR"}) from your ${ETHEREUM_BLOCKCHAIN_NAME} balance.`);
 
     const tokenERC = GLOBAL_ADDRESS.VARRR;
     const tokenInstContract = getContract(tokenERC, ERC20_ABI, library, account)
@@ -80,13 +76,13 @@ export default function TransactionForm() {
       throw new Error("Authorising ERC20 Token Spend Failed, please check your balance.")
     }
     setAlert(`
-      Your ${ETHEREUM_BLOCKCHAIN_NAME} account has authorised the bridge to spend ${token.name} token, the amount: ${amount}. 
-      \n Next, after this window please check the amount in Meta mask is what you wish to send.`
+      Your ${ETHEREUM_BLOCKCHAIN_NAME} account has authorised the bridge to spend ${destination === "mARRR" ? "vARRR" : "mARRR"} token, the amount: ${amount}. 
+      \n Next, after this window please check the amount in Metamask is what you wish to send.`
     );
   }
 
   const onSubmit = async (values) => {
-    const { token, amount } = values;
+    const { amount } = values;
     setAlert(null);
     setIsTxPending(true);
     const validAccount = await validateAddress(account);
@@ -100,26 +96,19 @@ export default function TransactionForm() {
     try {
       let txResult;
       if (destination === "mARRR") {
-        await authoriseOneTokenAmount(token, amount);
-        const gasAmount = mARRRContract.estimateGas.swapTomARRR(
-          web3.utils.toWei(amount, 'ether'),
-          { from: account }
-        );
+        await authoriseOneTokenAmount(destination, amount);
         txResult = await mARRRContract.swapTomARRR(
           web3.utils.toWei(amount, 'ether'),
-          { from: account, gasLimit: gasAmount }
+          { from: account, gasLimit: maxGas2 }
         );
       }
       else {
-        const gasAmount = mARRRContract.estimateGas.swapTovARRR(
-          web3.utils.toWei(amount, 'ether'),
-          { from: account }
-        );
         txResult = await mARRRContract.swapTovARRR(
           web3.utils.toWei(amount, 'ether'),
-          { from: account, gasLimit: gasAmount }
+          { from: account, gasLimit: maxGas2 }
         );
       }
+      await txResult.wait();
 
       addToast({ type: "success", description: 'Transaction Success!' });
       setAlert(null);
