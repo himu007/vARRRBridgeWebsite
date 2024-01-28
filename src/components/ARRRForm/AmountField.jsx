@@ -34,7 +34,7 @@ const AmountField = ({ control, destination }) => {
   return (
     <InputControlField
       name="amount"
-      label="Amount"
+      label={`Amount of ${destination === "mARRR" ? "vARRR" : "mARRR"} to swap to ${destination}`}
       fullWidth
       variant="standard"
       control={control}
