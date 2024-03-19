@@ -39,20 +39,8 @@ const Header = () => {
     >
       <Toolbar>
         <img width="80px" alt="logo" style={{ cursor: "pointer" }} src={Swap} />
-        <Typography
-          variant="h6"
-          color="inherit"
-          noWrap
-          sx={{ flexGrow: 1, marginLeft: '20px' }}
-        >
-          ({`${(TESTNET ? "Verus Testnet" : "Verus").toUpperCase()} mARRR swap service`})
-        </Typography>
-        <ConnectButton onClick={handleClickConnect} />
-        <WalletConnectDialog
-          isOpen={walletDialogOpen}
-          onClose={() => setWalletDialogOpen(false)}
-          onConfirm={handleConfirm}
-        />
+
+
       </Toolbar>
     </AppBar>
   )

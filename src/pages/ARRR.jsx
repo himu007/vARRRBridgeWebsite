@@ -25,14 +25,14 @@ export default function Checkout() {
           <Typography component="h2" variant="h4" align='center' sx={{ mb: 3 }}>vARRR Bridge Stats</Typography>
           <StatsGrid />
         </StyledContainer>
-        <StyledContainer component="main" maxWidth="sm">
+        {/* <StyledContainer component="main" maxWidth="sm">
           <Paper variant="outlined" sx={{ px: { xs: 2, md: 3 }, py: { md: 8, xs: 2 }, mb: 3, border: '2px solid grey', borderRadius: '10px' }}>
             <Typography component="h1" variant="h4" align="center" sx={{ mb: 3 }}>
               vARRR - mARRR SWAP
             </Typography>
             <TransactionForm />
           </Paper>
-        </StyledContainer>
+        </StyledContainer> */}
       </StyledRow>
     </ThemeProvider>
   )

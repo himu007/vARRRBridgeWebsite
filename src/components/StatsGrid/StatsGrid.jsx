@@ -47,7 +47,7 @@ const fetchConversion = async () => {
   const count = currencies.length
   const { supply } = bestState
   const blockdiff = blockNumber - block
-  const tbtcKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'tBTC')
+  const tbtcKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'tBTC.vETH')
   const tbtcAmount = currencies.find(c => c.currencyid === tbtcKey).reserves
 
   let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, tbtcPrice: tbtcAmount / token.reserves }))
@@ -71,7 +71,7 @@ const fetchConversion = async () => {
     )
   } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('%s: fetching prices %s', Date().toString(), error)
+    console.error('%s: fetching prices %s', Date().toString(), error.message)
   }
   list = list.map((token) => {
     switch (token.name) {
@@ -92,7 +92,7 @@ const fetchConversion = async () => {
           ...token,
           price: conversions.find((c) => c.symbol === 'arrr')?.price
         }
-      case 'tBTC':
+      case 'tBTC.vETH':
         return {
           ...token,
           price: conversions.find((c) => c.symbol === 'tbtc')?.price

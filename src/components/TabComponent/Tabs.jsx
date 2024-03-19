@@ -26,33 +26,7 @@ export default function Tabs() {
         <div className="maintab">
             <div className="Tabs">
                 {/* Tab nav */}
-                <ul className="nav">
-                    <li className={activeTab === "ARRR" ? "active" : ""}>
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={handleTab3}
-                            onKeyPress={() => { }}>
-                            ARRR</div>
-                    </li>
-                    <li className={activeTab === "Tokens" ? "active" : ""}>
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={handleTab1}
-                            onKeyPress={() => { }}>
-                            Tokens</div>
-                    </li>
-                    <li className={activeTab === "NFTs" ? "active" : ""}>
-                        <div
-                            role="button"
-                            tabIndex={0}
-                            onClick={handleTab2}
-                            onKeyPress={() => { }} >
 
-                            NFT&#39;s</div>
-                    </li>
-                </ul>
             </div>
             {/* eslint-disable-next-line no-nested-ternary */}
             {activeTab === "Tokens" ? <Checkout /> : activeTab === "NFTs" ? <NFT /> : <ARRR />}
