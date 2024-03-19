@@ -21,7 +21,7 @@ export default function Checkout() {
       <CssBaseline />
       <Header />
       <StyledRow>
-        <StyledContainer component="main" maxWidth="sm">
+        <StyledContainer component="main">
           <Typography component="h2" variant="h4" align='center' sx={{ mb: 3 }}>vARRR Bridge Stats</Typography>
           <StatsGrid />
         </StyledContainer>

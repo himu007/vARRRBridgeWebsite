@@ -136,20 +136,22 @@ const StatsGrid = () => {
       </Grid>
 
       <Grid container className="blueRowTitle" >
-        <Grid item xs={3}><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Bridge.vETH<br />reserve currencies</Typography></Grid>
-        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
-        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
-        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
+        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Bridge.vETH<br />reserve currencies</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
+        <Grid item xs={2} textAlign="right" ><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
       </Grid>
       {conversionList.list && conversionList.list.map((token) => {
         // eslint-disable-next-line no-nested-ternary
         const rate = token.tbtcPrice < token.price ? 'less' : token.tbtcPrice > token.price ? 'greater' : 'equal'
         const percent = Math.abs((token.tbtcPrice * conversionList.list[3].price) / token.price) - 1
+        const dollarPrice = token.tbtcPrice * conversionList.list[3].price
 
         return (
           <Grid container className="blueRow" key={token.name}>
             <Grid item xs={3}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{token.name}</Typography></Grid>
-            <Grid item xs={3} textAlign="right">
+            <Grid item xs={2} textAlign="right">
               <Typography sx={{ color: 'rgba(49, 101, 212, 0.59)', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
@@ -158,7 +160,7 @@ const StatsGrid = () => {
                 }).format(token.amount)}
               </Typography>
             </Grid>
-            <Grid item xs={3} textAlign="right">
+            <Grid item xs={2} textAlign="right">
               <Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
@@ -167,6 +169,14 @@ const StatsGrid = () => {
                 }).format(token.tbtcPrice)}
               </Typography></Grid>
             <Grid item xs={3} textAlign="right">
+              <Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>
+                {Intl.NumberFormat('en-US', {
+                  style: 'decimal',
+                  maximumFractionDigits: 2,
+                  minimumFractionDigits: 2
+                }).format(dollarPrice)}
+              </Typography></Grid>
+            <Grid item xs={2} textAlign="right">
               <Typography className={rate} noWrap>
                 <Chevron />
                 {Intl.NumberFormat('en-US', {
