@@ -30,7 +30,12 @@ const getDetails = (res) => {
   return { bestState, currencyNames, count, supply }
 }
 
-
+let conversions = [
+  { symbol: 'vrsc', price: 0 },
+  { symbol: 'eth', price: 0 },
+  { symbol: 'tBTC', price: 0 },
+  { symbol: 'arrr', price: 0 }
+]
 
 const fetchConversion = async () => {
   const res = await verusd.getCurrency('bridge.varrr');
@@ -53,12 +58,6 @@ const fetchConversion = async () => {
   let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, tbtcPrice: tbtcAmount / token.reserves }))
   const bridge = { name: 'Bridge.vARRR', amount: supply, tbtcPrice: (tbtcAmount * count) / supply }
 
-  let conversions = [
-    { symbol: 'vrsc', price: 0 },
-    { symbol: 'eth', price: 0 },
-    { symbol: 'tBTC', price: 0 },
-    { symbol: 'arrr', price: 0 }
-  ]
 
   try {
     conversions = await Promise.all(
@@ -116,23 +115,29 @@ const StatsGrid = () => {
   return (
     <>
       <Grid container className="blueRowTitle" >
-        <Grid item xs={4}><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
+        <Grid item xs={3}><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
 
-        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Supply</Typography></Grid>
-        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Supply</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
       </Grid>
 
       <Grid container className='blueRow' mb={5}>
-        <Grid item xs={4}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
-        <Grid item xs={4} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
+        <Grid item xs={3}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 0
         }).format(conversionList.bridge.amount)}</Typography></Grid>
-        <Grid item xs={4} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={3} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 8,
           minimumFractionDigits: 3
         }).format(conversionList.bridge.tbtcPrice)}</Typography></Grid>
+        <Grid item xs={3} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+          style: 'decimal',
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2
+        }).format(conversionList.bridge.tbtcPrice * conversionList.list[3].price)}</Typography></Grid>
       </Grid>
 
       <Grid container className="blueRowTitle" >
@@ -143,10 +148,10 @@ const StatsGrid = () => {
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
       </Grid>
       {conversionList.list && conversionList.list.map((token) => {
-        // eslint-disable-next-line no-nested-ternary
-        const rate = token.tbtcPrice < token.price ? 'less' : token.tbtcPrice > token.price ? 'greater' : 'equal'
-        const percent = Math.abs((token.tbtcPrice * conversionList.list[3].price) / token.price) - 1
         const dollarPrice = token.tbtcPrice * conversionList.list[3].price
+        // eslint-disable-next-line no-nested-ternary
+        const rate = dollarPrice < token.price ? 'less' : dollarPrice > token.price ? 'greater' : 'equal'
+        const percent = Math.abs(dollarPrice / token.price) - 1
 
         return (
           <Grid container className="blueRow" key={token.name}>
@@ -191,11 +196,16 @@ const StatsGrid = () => {
       <Grid container className='blueRow' mb={5}>
         <Grid item xs={6}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>Total Value of Liquidity</Typography></Grid>
 
-        <Grid item xs={6} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={4} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
         }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount)} tBTC</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+          style: 'decimal',
+          maximumFractionDigits: 2,
+          minimumFractionDigits: 2
+        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount * conversionList.list[3].price)} USD</Typography></Grid>
       </Grid>
     </>
   )
