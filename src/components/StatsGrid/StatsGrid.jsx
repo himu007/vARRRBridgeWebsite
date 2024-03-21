@@ -197,14 +197,14 @@ const StatsGrid = () => {
       })}
       <Grid container className='white' mb={5}> </Grid>
       <Grid container className='blueRow' mb={5}>
-        <Grid item xs={6}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>Total Value of Liquidity</Typography></Grid>
+        <Grid item xs={6}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>Total Value of Liquidity</Typography></Grid>
 
-        <Grid item xs={4} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
         }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount)} tBTC</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 2,
           minimumFractionDigits: 2
