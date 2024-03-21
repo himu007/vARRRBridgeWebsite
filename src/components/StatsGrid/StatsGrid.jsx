@@ -2,6 +2,7 @@ import React from 'react'
 
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
+import useMediaQuery from '@mui/material/useMediaQuery';
 import useSWR from 'swr'
 import { VerusdRpcInterface } from 'verusd-rpc-ts-client'
 
@@ -106,6 +107,8 @@ const fetchConversion = async () => {
 
 const StatsGrid = () => {
 
+  const isMobile = useMediaQuery(theme => theme.breakpoints.down('sm'));
+
   const { data: conversionList } = useSWR("fetchConversion", fetchConversion, {
     refreshInterval: 60_000 // every minute
   })
@@ -115,37 +118,37 @@ const StatsGrid = () => {
   return (
     <>
       <Grid container className="blueRowTitle" >
-        <Grid item xs={3}><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
+        <Grid item xs={3}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
 
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Supply</Typography></Grid>
-        <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Supply</Typography></Grid>
+        <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
       </Grid>
 
       <Grid container className='blueRow' mb={5}>
-        <Grid item xs={3}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
+        <Grid item xs={3}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 0
         }).format(conversionList.bridge.amount)}</Typography></Grid>
-        <Grid item xs={5} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 8,
           minimumFractionDigits: 3
         }).format(conversionList.bridge.tbtcPrice)}</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 2,
           minimumFractionDigits: 2
         }).format(conversionList.bridge.tbtcPrice * conversionList.list[3].price)}</Typography></Grid>
       </Grid>
 
-      <Grid container className="blueRowTitle" >
-        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Bridge.vETH<br />reserve currencies</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
-        <Grid item xs={2} textAlign="right" ><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
-        <Grid item xs={3} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: '12px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
+      <Grid container className="blueRowTitle" justifyContent="space-between">
+        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Bridge.vETH<br />reserve currencies</Typography></Grid>
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
+        <Grid item xs={2} textAlign="right" sx={{ ml: 2 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
+        <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
+        <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
       </Grid>
       {conversionList.list && conversionList.list.map((token) => {
         const dollarPrice = token.tbtcPrice * conversionList.list[3].price
@@ -154,10 +157,10 @@ const StatsGrid = () => {
         const percent = Math.abs(dollarPrice / token.price) - 1
 
         return (
-          <Grid container className="blueRow" key={token.name}>
-            <Grid item xs={3}><Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>{token.name}</Typography></Grid>
+          <Grid container className="blueRow" key={token.name} justifyContent="space-between">
+            <Grid item xs={3}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{token.name}</Typography></Grid>
             <Grid item xs={2} textAlign="right">
-              <Typography sx={{ color: 'rgba(49, 101, 212, 0.59)', fontWeight: 'bold' }}>
+              <Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: 'rgba(49, 101, 212, 0.59)', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
                   maximumFractionDigits: 3,
@@ -165,24 +168,24 @@ const StatsGrid = () => {
                 }).format(token.amount)}
               </Typography>
             </Grid>
-            <Grid item xs={2} textAlign="right">
-              <Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>
+            <Grid item xs={2} textAlign="right" sx={{ ml: 2 }}>
+              <Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
                   maximumFractionDigits: 8,
                   minimumFractionDigits: 2
                 }).format(token.tbtcPrice)}
               </Typography></Grid>
-            <Grid item xs={3} textAlign="right">
-              <Typography sx={{ color: '#3165d4', fontWeight: 'bold' }}>
+            <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}>
+              <Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
                   maximumFractionDigits: 2,
                   minimumFractionDigits: 2
                 }).format(dollarPrice)}
               </Typography></Grid>
-            <Grid item xs={2} textAlign="right">
-              <Typography className={rate} noWrap>
+            <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}>
+              <Typography className={rate} noWrap sx={{ fontSize: isMobile ? '10px' : '14px' }}>
                 <Chevron />
                 {Intl.NumberFormat('en-US', {
                   style: 'percent',
