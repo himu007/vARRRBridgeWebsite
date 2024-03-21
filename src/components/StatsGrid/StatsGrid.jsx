@@ -148,7 +148,7 @@ const StatsGrid = () => {
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
         <Grid item xs={2} textAlign="right" sx={{ ml: 2 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
         <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
-        <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
+        <Grid item xs={2} textAlign="right" ><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
       </Grid>
       {conversionList.list && conversionList.list.map((token) => {
         const dollarPrice = token.tbtcPrice * conversionList.list[3].price
@@ -184,7 +184,7 @@ const StatsGrid = () => {
                   minimumFractionDigits: 2
                 }).format(dollarPrice)}
               </Typography></Grid>
-            <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}>
+            <Grid item xs={2} textAlign="right" >
               <Typography className={rate} noWrap sx={{ fontSize: isMobile ? '10px' : '14px' }}>
                 <Chevron />
                 {Intl.NumberFormat('en-US', {
@@ -199,16 +199,16 @@ const StatsGrid = () => {
       <Grid container className='blueRow' mb={5}>
         <Grid item xs={6}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>Total Value of Liquidity</Typography></Grid>
 
-        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount)} tBTC</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount)}<br /> tBTC</Typography></Grid>
+        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 2,
           minimumFractionDigits: 2
-        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount * conversionList.list[3].price)} USD</Typography></Grid>
+        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount * conversionList.list[3].price)}<br /> USD</Typography></Grid>
       </Grid>
     </>
   )
