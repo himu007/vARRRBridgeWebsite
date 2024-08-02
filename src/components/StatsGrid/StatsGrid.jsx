@@ -13,9 +13,9 @@ import { ReactComponent as Chevron } from '../../images/icons/chevron-icon.svg'
 const CoinGeckoVRSC = 'https://api.coingecko.com/api/v3/coins/verus-coin'
 const CoinGeckoETH = 'https://api.coingecko.com/api/v3/coins/ethereum'
 const CoinGeckotBTC = 'https://api.coingecko.com/api/v3/coins/tbtc'
-const CoinGeckoARRR = 'https://api.coingecko.com/api/v3/coins/pirate-chain'
+const CoinGeckoDAI = 'https://api.coingecko.com/api/v3/coins/dai'
 
-const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckotBTC, CoinGeckoARRR]
+const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckotBTC, CoinGeckoDAI]
 
 const verusd = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, process.env.REACT_APP_VERUS_RPC_URL)
 
@@ -35,16 +35,14 @@ let conversions = [
   { symbol: 'vrsc', price: 0 },
   { symbol: 'eth', price: 0 },
   { symbol: 'tBTC', price: 0 },
-  { symbol: 'arrr', price: 0 }
+  { symbol: 'dai', price: 0 },
+  { symbol: 'vDEX', price: 0 }
 ]
 
 const fetchConversion = async () => {
-  const res = await verusd.getCurrency('bridge.varrr');
-  const vrscbridge = await verusd.getCurrency('bridge.veth')
+  const res = await verusd.getCurrency('bridge.vDEX');
   const info = await verusd.getInfo()
-
-  const vrscbridgedetails = getDetails(vrscbridge);
-
+  const vrscbridgedetails = getDetails(res);
   const block = info.result.longestchain
 
   const bestState = res.result.bestcurrencystate
@@ -53,11 +51,11 @@ const fetchConversion = async () => {
   const count = currencies.length
   const { supply } = bestState
   const blockdiff = blockNumber - block
-  const tbtcKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'tBTC.vETH')
-  const tbtcAmount = currencies.find(c => c.currencyid === tbtcKey).reserves
+  const daiKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'DAI.vETH')
+  const daiAmount = currencies.find(c => c.currencyid === daiKey).reserves
 
-  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, tbtcPrice: tbtcAmount / token.reserves }))
-  const bridge = { name: 'Bridge.vARRR', amount: supply, tbtcPrice: (tbtcAmount * count) / supply }
+  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, daiPrice: daiAmount / token.reserves }))
+  const bridge = { name: 'Bridge.vDEX', amount: supply, daiPrice: (daiAmount * count) / supply }
 
 
   try {
@@ -82,20 +80,30 @@ const fetchConversion = async () => {
           price:
             conversions.find((c) => c.symbol === 'vrsc')?.price
         }
-      case 'Bridge.vETH':
+      case 'Bridge.vDEX':
         return {
           ...token,
           price: conversions.find((c) => c.symbol === 'bridge')?.price
         }
-      case 'vARRR':
+      case 'dai':
         return {
           ...token,
-          price: conversions.find((c) => c.symbol === 'arrr')?.price
+          price: conversions.find((c) => c.symbol === 'dai')?.price
         }
       case 'tBTC.vETH':
         return {
           ...token,
           price: conversions.find((c) => c.symbol === 'tbtc')?.price
+        }
+      case 'vDEX':
+        return {
+          ...token,
+          price: conversions.find((c) => c.symbol === 'vDEX')?.price
+        }
+      case 'vETH':
+        return {
+          ...token,
+          price: conversions.find((c) => c.symbol === 'eth')?.price
         }
       // return { ...token, price: vrscPrice }
       default:
@@ -118,15 +126,15 @@ const StatsGrid = () => {
   return (
     <>
       <Grid container className="blueRowTitle" >
-        <Grid item xs={3}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
+        <Grid item xs={5}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Liquidity pool</Typography></Grid>
 
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Supply</Typography></Grid>
-        <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
+        <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in DAI</Typography></Grid>
+
       </Grid>
 
       <Grid container className='blueRow' mb={5}>
-        <Grid item xs={3}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
+        <Grid item xs={5}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 0
@@ -135,23 +143,17 @@ const StatsGrid = () => {
           style: 'decimal',
           maximumFractionDigits: 8,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.tbtcPrice)}</Typography></Grid>
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
-          style: 'decimal',
-          maximumFractionDigits: 2,
-          minimumFractionDigits: 2
-        }).format(conversionList.bridge.tbtcPrice * conversionList.list[3].price)}</Typography></Grid>
+        }).format(conversionList.bridge.daiPrice)}</Typography></Grid>
       </Grid>
 
       <Grid container className="blueRowTitle" justifyContent="space-between">
-        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Bridge.vETH<br />reserve currencies</Typography></Grid>
+        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Bridge.vDEX<br />reserve currencies</Typography></Grid>
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
-        <Grid item xs={2} textAlign="right" sx={{ ml: 2 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in tBTC</Typography></Grid>
-        <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in USD</Typography></Grid>
+        <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in DAI</Typography></Grid>
         <Grid item xs={2} textAlign="right" ><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
       </Grid>
       {conversionList.list && conversionList.list.map((token) => {
-        const dollarPrice = token.tbtcPrice * conversionList.list[3].price
+        const dollarPrice = token.daiPrice;
         // eslint-disable-next-line no-nested-ternary
         const rate = dollarPrice < token.price ? 'less' : dollarPrice > token.price ? 'greater' : 'equal'
         const percent = Math.abs(dollarPrice / token.price) - 1
@@ -172,17 +174,9 @@ const StatsGrid = () => {
               <Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
-                  maximumFractionDigits: 8,
+                  maximumFractionDigits: 4,
                   minimumFractionDigits: 2
-                }).format(token.tbtcPrice)}
-              </Typography></Grid>
-            <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}>
-              <Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>
-                {Intl.NumberFormat('en-US', {
-                  style: 'decimal',
-                  maximumFractionDigits: 2,
-                  minimumFractionDigits: 2
-                }).format(dollarPrice)}
+                }).format(token.daiPrice)}
               </Typography></Grid>
             <Grid item xs={2} textAlign="right" >
               <Typography className={rate} noWrap sx={{ fontSize: isMobile ? '10px' : '14px' }}>
@@ -195,20 +189,16 @@ const StatsGrid = () => {
           </Grid >
         )
       })}
-      <Grid container className='white' mb={5}> </Grid>
-      <Grid container className='blueRow' mb={5}>
-        <Grid item xs={6}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>Total Value of Liquidity</Typography></Grid>
+      <Grid container className='white' mb={2}> </Grid>
+      <Grid container className='blueRow' mb={2}>
+        <Grid item xs={8}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>Total Value of Liquidity</Typography></Grid>
 
-        <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
+        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount)}<br /> tBTC</Typography></Grid>
-        <Grid item xs={4} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
-          style: 'decimal',
-          maximumFractionDigits: 2,
-          minimumFractionDigits: 2
-        }).format(conversionList.bridge.tbtcPrice * conversionList.bridge.amount * conversionList.list[3].price)}<br /> USD</Typography></Grid>
+        }).format(conversionList.bridge.daiPrice * conversionList.bridge.amount)} DAI</Typography></Grid>
+
       </Grid>
     </>
   )

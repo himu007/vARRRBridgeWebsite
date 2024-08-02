@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 
-import ARRR from '../../pages/ARRR';
 import Checkout from '../../pages/Checkout';
 import NFT from '../../pages/NFT';
+import VDEX from '../../pages/vDEX';
 
 export default function Tabs() {
 
-    const [activeTab, setActiveTab] = useState("ARRR");
+    const [activeTab, setActiveTab] = useState("VDEX");
 
     const handleTab1 = () => {
         // update the state to tab1
@@ -19,18 +19,11 @@ export default function Tabs() {
 
     const handleTab3 = () => {
         // update the state to tab2
-        setActiveTab("ARRR");
+        setActiveTab("VDEX");
     };
     // eslint-disable jsx-a11y/no-noninteractive-element-interactions
     return (
-        <div className="maintab">
-            <div className="Tabs">
-                {/* Tab nav */}
-
-            </div>
-            {/* eslint-disable-next-line no-nested-ternary */}
-            {activeTab === "Tokens" ? <Checkout /> : activeTab === "NFTs" ? <NFT /> : <ARRR />}
-        </div>
+        <VDEX />
 
     );
 };

@@ -28,21 +28,22 @@ const Header = () => {
   }
 
   return (
-    <AppBar
-      position="absolute"
-      color="default"
-      elevation={0}
-      sx={{
-        position: 'relative',
-        borderBottom: (t) => `1px solid ${t.palette.divider}`
-      }}
-    >
-      <Toolbar>
-        <img width="80px" alt="logo" style={{ cursor: "pointer" }} src={Swap} />
+    <></>
+    // <AppBar
+    //   position="absolute"
+    //   color="default"
+    //   elevation={0}
+    //   sx={{
+    //     position: 'relative',
+    //     borderBottom: (t) => `1px solid ${t.palette.divider}`
+    //   }}
+    // >
+    //   <Toolbar>
+    //     {/* } <img width="80px" alt="logo" style={{ cursor: "pointer" }} src={Swap} /> */}
 
 
-      </Toolbar>
-    </AppBar>
+    //   </Toolbar>
+    // </AppBar>
   )
 }
 
