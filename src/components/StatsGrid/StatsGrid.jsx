@@ -11,51 +11,40 @@ import { GLOBAL_IADDRESS } from 'constants/contractAddress';
 import { ReactComponent as Chevron } from '../../images/icons/chevron-icon.svg'
 
 const CoinGeckoVRSC = 'https://api.coingecko.com/api/v3/coins/verus-coin'
-const CoinGeckoETH = 'https://api.coingecko.com/api/v3/coins/ethereum'
-const CoinGeckotBTC = 'https://api.coingecko.com/api/v3/coins/tbtc'
-const CoinGeckoDAI = 'https://api.coingecko.com/api/v3/coins/dai'
 
-const urls = [CoinGeckoVRSC, CoinGeckoETH, CoinGeckotBTC, CoinGeckoDAI]
+const urls = [CoinGeckoVRSC]
 
 const verusd = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, process.env.REACT_APP_VERUS_RPC_URL)
 
 const blockNumber = process.env.REACT_APP_VERUS_END_BLOCK || '0'
 
-const getDetails = (res) => {
-  const bestState = res.result.bestcurrencystate
-  const currencyNames = res.result.currencynames
-  const currencies = bestState.reservecurrencies
-  const count = currencies.length
-  const { supply } = bestState
-
-  return { bestState, currencyNames, count, supply }
-}
-
 let conversions = [
   { symbol: 'vrsc', price: 0 },
-  { symbol: 'eth', price: 0 },
-  { symbol: 'tBTC', price: 0 },
-  { symbol: 'dai', price: 0 },
-  { symbol: 'vDEX', price: 0 }
+  { symbol: 'superVRSC', price: 0 }
 ]
 
 const fetchConversion = async () => {
-  const res = await verusd.getCurrency('bridge.vDEX');
+  const res = await verusd.getCurrency('supervrsc');
+  const supernetpriceinvrsc = await verusd.estimateConversion({ amount: 1, currency: 'supernet', convertto: 'vrsc', via: 'supervrsc' });
+  const supervrscpriceinvrsc = await verusd.estimateConversion({ amount: 1, currency: 'supervrsc', convertto: 'vrsc' });
+  const vrscindai = await verusd.estimateConversion({ amount: 1, currency: 'vrsc', convertto: 'dai.veth', via: 'bridge.veth' });
   const info = await verusd.getInfo()
-  const vrscbridgedetails = getDetails(res);
   const block = info.result.longestchain
 
   const bestState = res.result.bestcurrencystate
   const currencyNames = res.result.currencynames
   const currencies = bestState.reservecurrencies
-  const count = currencies.length
+
   const { supply } = bestState
   const blockdiff = blockNumber - block
-  const daiKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'DAI.vETH')
-  const daiAmount = currencies.find(c => c.currencyid === daiKey).reserves
+  // const daiKey = Object.keys(res?.result?.currencynames).find((key) => currencyNames !== undefined && currencyNames[key] === 'DAI.vETH')
+  // const daiAmount = currencies.find(c => c.currencyid === daiKey).reserves
 
-  let list = currencies.map((token) => ({ name: currencyNames[token.currencyid], amount: token.reserves, daiPrice: daiAmount / token.reserves }))
-  const bridge = { name: 'Bridge.vDEX', amount: supply, daiPrice: (daiAmount * count) / supply }
+  let list = currencies.map((token) => ({
+    name: currencyNames[token.currencyid],
+    amount: token.reserves, daiPrice: currencyNames[token.currencyid] === "VRSC" ? vrscindai.result.estimatedcurrencyout : (supernetpriceinvrsc.result.estimatedcurrencyout * vrscindai.result.estimatedcurrencyout)
+  }))
+  const superVRSC = { name: 'SuperVRSC', amount: supply, daiPrice: supervrscpriceinvrsc.result.estimatedcurrencyout * vrscindai.result.estimatedcurrencyout }
 
 
   try {
@@ -77,40 +66,19 @@ const fetchConversion = async () => {
       case 'VRSC':
         return {
           ...token,
-          price:
-            conversions.find((c) => c.symbol === 'vrsc')?.price
+          price: conversions.find((c) => c.symbol === 'vrsc')?.price
         }
-      case 'Bridge.vDEX':
+      case 'SUPERNET':
         return {
           ...token,
-          price: conversions.find((c) => c.symbol === 'bridge')?.price
-        }
-      case 'dai':
-        return {
-          ...token,
-          price: conversions.find((c) => c.symbol === 'dai')?.price
-        }
-      case 'tBTC.vETH':
-        return {
-          ...token,
-          price: conversions.find((c) => c.symbol === 'tbtc')?.price
-        }
-      case 'vDEX':
-        return {
-          ...token,
-          price: conversions.find((c) => c.symbol === 'vDEX')?.price
-        }
-      case 'vETH':
-        return {
-          ...token,
-          price: conversions.find((c) => c.symbol === 'eth')?.price
+          price: vrscindai.result.estimatedcurrencyout * supernetpriceinvrsc.result.estimatedcurrencyout
         }
       // return { ...token, price: vrscPrice }
       default:
         return { ...token }
     }
   })
-  return { list, bridge, blockdiff, currencies }
+  return { list, superVRSC, blockdiff, currencies }
 }
 
 const StatsGrid = () => {
@@ -134,20 +102,20 @@ const StatsGrid = () => {
       </Grid>
 
       <Grid container className='blueRow' mb={5}>
-        <Grid item xs={5}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{conversionList.bridge.name}</Typography></Grid>
+        <Grid item xs={5}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>SuperVRSC</Typography></Grid>
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 0
-        }).format(conversionList.bridge.amount)}</Typography></Grid>
+        }).format(conversionList.superVRSC.amount)}</Typography></Grid>
         <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
-          maximumFractionDigits: 8,
+          maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.daiPrice)}</Typography></Grid>
+        }).format(conversionList.superVRSC.daiPrice)}</Typography></Grid>
       </Grid>
 
       <Grid container className="blueRowTitle" justifyContent="space-between">
-        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Bridge.vDEX<br />reserve currencies</Typography></Grid>
+        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>SuperVRSC<br />reserve currencies</Typography></Grid>
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
         <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in DAI</Typography></Grid>
         <Grid item xs={2} textAlign="right" ><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
@@ -174,7 +142,7 @@ const StatsGrid = () => {
               <Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>
                 {Intl.NumberFormat('en-US', {
                   style: 'decimal',
-                  maximumFractionDigits: 4,
+                  maximumFractionDigits: 3,
                   minimumFractionDigits: 2
                 }).format(token.daiPrice)}
               </Typography></Grid>
@@ -197,9 +165,10 @@ const StatsGrid = () => {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.bridge.daiPrice * conversionList.bridge.amount)} DAI</Typography></Grid>
+        }).format(conversionList.superVRSC.daiPrice * conversionList.superVRSC.amount)} DAI</Typography></Grid>
 
       </Grid>
+      <Typography> Note: DAI prices are converted using Bridge.vETH </Typography>
     </>
   )
 }
