@@ -20,20 +20,26 @@ const blockNumber = process.env.REACT_APP_VERUS_END_BLOCK || '0'
 
 let conversions = [
   { symbol: 'vrsc', price: 0 },
-  { symbol: 'superVRSC', price: 0 }
+  { symbol: 'chips', price: 0 },
+  { symbol: 'bridge', price: 0 }
 ]
 
 const fetchConversion = async () => {
-  const res = await verusd.getCurrency('supervrsc');
-  const supernetpriceinvrsc = await verusd.estimateConversion({ amount: 1, currency: 'supernet', convertto: 'vrsc', via: 'supervrsc' });
-  const supervrscpriceinvrsc = await verusd.estimateConversion({ amount: 1, currency: 'supervrsc', convertto: 'vrsc' });
-  const vrscindai = await verusd.estimateConversion({ amount: 1, currency: 'vrsc', convertto: 'dai.veth', via: 'bridge.veth' });
-  const info = await verusd.getInfo()
-  const block = info.result.longestchain
+  const res = await verusd.getCurrency('bridge.chips');
 
   const bestState = res.result.bestcurrencystate
   const currencyNames = res.result.currencynames
   const currencies = bestState.reservecurrencies
+
+  const chipspriceinvrsc = currencies[0].reserves / currencies[1].reserves;
+
+
+  const chipsinvrsc = { result: { estimatedcurrencyout: chipspriceinvrsc } } // await verusd.estimateConversion({ amount: 1, currency: 'chips', convertto: 'vrsc', via: 'bridge.chips' });
+  const bridgechipspriceinvrsc = { result: { estimatedcurrencyout: 0 } } // await verusd.estimateConversion({ amount: 1, currency: 'bridge.chips', convertto: 'vrsc' });
+  const vrscindai = await verusd.estimateConversion({ amount: 1, currency: 'vrsc', convertto: 'dai.veth', via: 'bridge.veth' });
+  const info = await verusd.getInfo()
+  const block = info.result.longestchain
+
 
   const { supply } = bestState
   const blockdiff = blockNumber - block
@@ -42,9 +48,9 @@ const fetchConversion = async () => {
 
   let list = currencies.map((token) => ({
     name: currencyNames[token.currencyid],
-    amount: token.reserves, daiPrice: currencyNames[token.currencyid] === "VRSC" ? vrscindai.result.estimatedcurrencyout : (supernetpriceinvrsc.result.estimatedcurrencyout * vrscindai.result.estimatedcurrencyout)
+    amount: token.reserves, daiPrice: currencyNames[token.currencyid] === "VRSC" ? vrscindai.result.estimatedcurrencyout : (chipsinvrsc.result.estimatedcurrencyout * vrscindai.result.estimatedcurrencyout)
   }))
-  const superVRSC = { name: 'SuperVRSC', amount: supply, daiPrice: supervrscpriceinvrsc.result.estimatedcurrencyout * vrscindai.result.estimatedcurrencyout }
+  const chips = { name: 'chips', amount: supply, daiPrice: chipsinvrsc.result.estimatedcurrencyout * bridgechipspriceinvrsc.result.estimatedcurrencyout }
 
 
   try {
@@ -68,17 +74,22 @@ const fetchConversion = async () => {
           ...token,
           price: conversions.find((c) => c.symbol === 'vrsc')?.price
         }
-      case 'SUPERNET':
+      case 'chips':
         return {
           ...token,
-          price: vrscindai.result.estimatedcurrencyout * supernetpriceinvrsc.result.estimatedcurrencyout
+          price: vrscindai.result.estimatedcurrencyout * bridgechipspriceinvrsc.result.estimatedcurrencyout
+        }
+      case 'bridge':
+        return {
+          ...token,
+          price: vrscindai.result.estimatedcurrencyout * bridgechipspriceinvrsc.result.estimatedcurrencyout
         }
       // return { ...token, price: vrscPrice }
       default:
         return { ...token }
     }
   })
-  return { list, superVRSC, blockdiff, currencies }
+  return { list, chips, blockdiff, currencies }
 }
 
 const StatsGrid = () => {
@@ -102,20 +113,20 @@ const StatsGrid = () => {
       </Grid>
 
       <Grid container className='blueRow' mb={5}>
-        <Grid item xs={5}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>SuperVRSC</Typography></Grid>
+        <Grid item xs={5}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>Bridge.CHIPS</Typography></Grid>
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}> {Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 0
-        }).format(conversionList.superVRSC.amount)}</Typography></Grid>
+        }).format(conversionList.chips.amount)}</Typography></Grid>
         <Grid item xs={5} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', color: '#3165d4', fontWeight: 'bold' }}>{Intl.NumberFormat('en-US', {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.superVRSC.daiPrice)}</Typography></Grid>
+        }).format(conversionList.list[0].price * 2 * conversionList.list[0].amount / conversionList.chips.amount)}</Typography></Grid>
       </Grid>
 
       <Grid container className="blueRowTitle" justifyContent="space-between">
-        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>SuperVRSC<br />reserve currencies</Typography></Grid>
+        <Grid item xs={3} textAlign="left"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Bridge.CHIPS<br />reserve currencies</Typography></Grid>
         <Grid item xs={2} textAlign="right"><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>in reserves</Typography></Grid>
         <Grid item xs={2} textAlign="right" sx={{ ml: 1 }}><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Price in DAI</Typography></Grid>
         <Grid item xs={2} textAlign="right" ><Typography sx={{ fontSize: isMobile ? '10px' : '14px', fontWeight: 'bold' }}>Compared to<br />CoinGecko</Typography></Grid>
@@ -165,7 +176,7 @@ const StatsGrid = () => {
           style: 'decimal',
           maximumFractionDigits: 3,
           minimumFractionDigits: 3
-        }).format(conversionList.superVRSC.daiPrice * conversionList.superVRSC.amount)} DAI</Typography></Grid>
+        }).format(conversionList.list[0].price * 2 * conversionList.list[0].amount)} DAI</Typography></Grid>
 
       </Grid>
       <Typography> Note: DAI prices are converted using Bridge.vETH </Typography>
