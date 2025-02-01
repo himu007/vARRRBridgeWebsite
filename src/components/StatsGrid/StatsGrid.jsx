@@ -15,6 +15,7 @@ const CoinGeckoVRSC = 'https://api.coingecko.com/api/v3/coins/verus-coin'
 const urls = [CoinGeckoVRSC]
 
 const verusd = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, process.env.REACT_APP_VERUS_RPC_URL)
+const verusdMainnet = new VerusdRpcInterface(GLOBAL_IADDRESS.VRSC, "https://api.verus.services")
 
 const blockNumber = process.env.REACT_APP_VERUS_END_BLOCK || '0'
 
@@ -31,12 +32,10 @@ const fetchConversion = async () => {
   const currencyNames = res.result.currencynames
   const currencies = bestState.reservecurrencies
 
-  const chipspriceinvrsc = currencies[0].reserves / currencies[1].reserves;
 
-
-  const chipsinvrsc = { result: { estimatedcurrencyout: chipspriceinvrsc } } // await verusd.estimateConversion({ amount: 1, currency: 'chips', convertto: 'vrsc', via: 'bridge.chips' });
-  const bridgechipspriceinvrsc = { result: { estimatedcurrencyout: 0 } } // await verusd.estimateConversion({ amount: 1, currency: 'bridge.chips', convertto: 'vrsc' });
-  const vrscindai = await verusd.estimateConversion({ amount: 1, currency: 'vrsc', convertto: 'dai.veth', via: 'bridge.veth' });
+  const chipsinvrsc = await verusd.estimateConversion({ amount: 1, currency: 'chips', convertto: 'vrsc', via: 'bridge.chips' });
+  const bridgechipspriceinvrsc = await verusd.estimateConversion({ amount: 1, currency: 'bridge.chips', convertto: 'vrsc' });
+  const vrscindai = await verusdMainnet.estimateConversion({ amount: 1, currency: 'vrsc', convertto: 'dai.veth', via: 'bridge.veth' });
   const info = await verusd.getInfo()
   const block = info.result.longestchain
 
@@ -179,7 +178,7 @@ const StatsGrid = () => {
         }).format(conversionList.list[0].price * 2 * conversionList.list[0].amount)} DAI</Typography></Grid>
 
       </Grid>
-      <Typography> Note: DAI prices are converted using Bridge.vETH </Typography>
+      <Typography> Note: DAI prices are calculated using latest Bridge.vETH rate</Typography>
     </>
   )
 }
